@@ -4,6 +4,7 @@ const cors = require("cors");
 const path = require("path");
 const { connectDB } = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const presenterRoutes = require("./routes/presenter.routes");
 const apiRoutes = require("./routes");
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
@@ -19,6 +20,7 @@ async function bootstrap() {
   app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
   app.use("/api/auth", authRoutes);
+  app.use("/api/presenters", presenterRoutes);
   app.use("/api", apiRoutes);
 
   app.use(notFound);
