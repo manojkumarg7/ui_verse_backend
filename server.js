@@ -5,6 +5,7 @@ const path = require("path");
 const { connectDB } = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const presenterRoutes = require("./routes/presenter.routes");
+const presentationRoutes = require("./routes/presentation.routes");
 const apiRoutes = require("./routes");
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
@@ -21,6 +22,7 @@ async function bootstrap() {
 
   app.use("/api/auth", authRoutes);
   app.use("/api/presenters", presenterRoutes);
+  app.use("/api/presentations", presentationRoutes);
   app.use("/api", apiRoutes);
 
   app.use(notFound);

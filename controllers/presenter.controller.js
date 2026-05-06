@@ -15,8 +15,16 @@ function isValidImageUrl(value) {
   }
 }
 
+/** Loose email shape check (aligned with typical contact validation). */
+function isValidEmail(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return false;
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
 function assertPresenterFields(body) {
-  const { name, title, image } = body;
+  const { name, title, image, email } = body;
   const parts = [];
 
   if (name === undefined || name === null || !String(name).trim()) {
@@ -29,6 +37,11 @@ function assertPresenterFields(body) {
     parts.push("image is required");
   } else if (!isValidImageUrl(image)) {
     parts.push("image must be a valid http or https URL");
+  }
+  if (email === undefined || email === null || !String(email).trim()) {
+    parts.push("email is required");
+  } else if (!isValidEmail(email)) {
+    parts.push("email must be valid");
   }
 
   if (parts.length) {
@@ -45,10 +58,12 @@ function assertValidId(id) {
 /** POST /api/presenters */
 const createPresenter = asyncHandler(async (req, res) => {
   assertPresenterFields(req.body);
+  const normalizedEmail = String(req.body.email).toLowerCase().trim();
   const doc = await Presenter.create({
     name: String(req.body.name).trim(),
     title: String(req.body.title).trim(),
     image: String(req.body.image).trim(),
+    email: normalizedEmail,
   });
   res.status(201).json({
     success: true,
@@ -87,12 +102,14 @@ const updatePresenter = asyncHandler(async (req, res) => {
   const { id } = req.params;
   assertValidId(id);
   assertPresenterFields(req.body);
+  const normalizedEmail = String(req.body.email).toLowerCase().trim();
   const data = await Presenter.findByIdAndUpdate(
     id,
     {
       name: String(req.body.name).trim(),
       title: String(req.body.title).trim(),
       image: String(req.body.image).trim(),
+      email: normalizedEmail,
     },
     { new: true, runValidators: true },
   ).lean();
