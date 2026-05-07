@@ -10,7 +10,13 @@ const register = asyncHandler(async (req, res) => {
 
 /** Authenticates an existing user; does not create a new row. */
 const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const payload = req.body && typeof req.body === "object" ? req.body : {};
+  const email = payload.email ?? payload.userEmail ?? payload.username;
+  const password = payload.password;
+
+  console.log("[AUTH][LOGIN] Incoming payload keys:", Object.keys(payload));
+  console.log("[AUTH][LOGIN] Email candidate:", email || "<missing>");
+
   const { user, token } = await authService.loginUser({ email, password });
   res.status(200).json({ success: true, user, token });
 });

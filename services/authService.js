@@ -3,6 +3,11 @@ const User = require("../models/User");
 const AppError = require("../utils/AppError");
 const { signToken } = require("../utils/jwt");
 
+function normalizeText(value) {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
+}
+
 function toPublicUser(userDoc) {
   const o = userDoc.toObject ? userDoc.toObject() : { ...userDoc };
   delete o.password;
@@ -40,24 +45,41 @@ async function registerUser({ name, email, password }) {
 }
 
 async function loginUser({ email, password }) {
-  if (!email || !password) {
-    throw new AppError("Email and password are required", 400);
+  const normalizedEmail = normalizeText(email).toLowerCase();
+  const normalizedPassword = normalizeText(password);
+
+  if (!normalizedEmail || !normalizedPassword) {
+    throw new AppError("Missing required fields: email and password", 400);
   }
 
-  const normalizedEmail = String(email).toLowerCase().trim();
+  console.log("[AUTH][LOGIN] Lookup user by email:", normalizedEmail);
   const user = await User.findOne({ email: normalizedEmail }).select(
     "+password",
   );
   if (!user) {
-    throw new AppError("Invalid email or password", 401);
+    console.log("[AUTH][LOGIN] User not found for email:", normalizedEmail);
+    throw new AppError("User not found", 404);
   }
 
-  const match = await bcrypt.compare(String(password), user.password);
+  console.log("[AUTH][LOGIN] User found:", {
+    id: String(user._id),
+    email: user.email,
+    hasPassword: Boolean(user.password),
+  });
+
+  if (!user.password || typeof user.password !== "string") {
+    console.log("[AUTH][LOGIN] Stored password hash is missing/invalid");
+    throw new AppError("Invalid password", 401);
+  }
+
+  const match = await bcrypt.compare(normalizedPassword, user.password);
   if (!match) {
-    throw new AppError("Invalid email or password", 401);
+    console.log("[AUTH][LOGIN] Password mismatch for:", normalizedEmail);
+    throw new AppError("Invalid password", 401);
   }
 
   const token = signToken(user._id);
+  console.log("[AUTH][LOGIN] Login successful for:", normalizedEmail);
   return { user: toPublicUser(user), token };
 }
 

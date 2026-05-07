@@ -30,13 +30,16 @@ async function bootstrap() {
 
   // Default 5001 — port 5000 is often used by other dev stacks (e.g. Flask) and causes confusing 404s.
   const PORT = Number(process.env.PORT) || 5001;
+  const BASE_URL =
+    process.env.API_BASE_URL ||
+    (process.env.NODE_ENV === "production"
+      ? "https://ui-verse-backend-qkuf.onrender.com"
+      : `http://localhost:${PORT}`);
   app.listen(PORT, () => {
     console.log(`[HTTP] UIverse API listening on port ${PORT}`);
-    console.log(`[HTTP] Local URL: http://localhost:${PORT}`);
-    console.log(`[HTTP] API base: http://localhost:${PORT}/api`);
-    console.log(
-      `[HTTP] Auth register: POST http://localhost:${PORT}/api/auth/register`,
-    );
+    console.log(`[HTTP] Base URL: ${BASE_URL}`);
+    console.log(`[HTTP] API base: ${BASE_URL}/api`);
+    console.log(`[HTTP] Auth register: POST ${BASE_URL}/api/auth/register`);
   });
 }
 
